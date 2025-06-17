@@ -30,12 +30,14 @@ class MemorySettingsStore(SettingsStore):
             llm_model=os.getenv("DEFAULT_LLM_MODEL", "openrouter/anthropic/claude-3-haiku-20240307"),
             llm_base_url=os.getenv("DEFAULT_LLM_BASE_URL", "https://openrouter.ai/api/v1"),
             llm_api_key=openrouter_key,  # Will be None if not set
-            agent="CodeActAgent",
-            language="en",
-            confirmation_mode=False,
+            agent=os.getenv("DEFAULT_AGENT", "CodeActAgent"),
+            language=os.getenv("DEFAULT_LANGUAGE", "en"),
+            confirmation_mode=os.getenv("CONFIRMATION_MODE", "false").lower() == "true",
             security_analyzer="",
-            enable_auto_lint=False,
+            enable_auto_lint=os.getenv("ENABLE_AUTO_LINT", "false").lower() == "true",
             disable_color=False,
+            max_iterations=int(os.getenv("MAX_ITERATIONS", "30")),
+            max_budget_per_task=float(os.getenv("MAX_BUDGET_PER_TASK", "10.0")),
             llm_config={
                 "model": os.getenv("DEFAULT_LLM_MODEL", "openrouter/anthropic/claude-3-haiku-20240307"),
                 "base_url": os.getenv("DEFAULT_LLM_BASE_URL", "https://openrouter.ai/api/v1"),
