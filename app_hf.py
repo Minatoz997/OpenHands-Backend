@@ -41,6 +41,11 @@ def setup_hf_environment():
     os.environ.setdefault("SANDBOX_USER_ID", "1000")
     os.environ.setdefault("WORKSPACE_BASE", "/tmp/workspace")
     
+    # Additional security bypass for HF Spaces
+    os.environ.setdefault("OPENHANDS_DISABLE_AUTH", "true")
+    os.environ.setdefault("ENABLE_AUTO_LINT", "false")
+    os.environ.setdefault("ENABLE_SECURITY_ANALYSIS", "false")
+    
     # Create workspace directory
     workspace_dir = "/tmp/workspace"
     os.makedirs(workspace_dir, mode=0o755, exist_ok=True)
@@ -66,11 +71,19 @@ if __name__ == "__main__":
     print(f"💾 Cache Dir: {cache_dir}")
     print(f"🔑 LLM API Key: {'✅ Set' if os.getenv('LLM_API_KEY') else '❌ Missing'}")
     print(f"🔐 JWT Secret: {'✅ Set' if os.getenv('JWT_SECRET') else '❌ Missing'}")
+    print(f"🛡️ Security Disabled: {os.getenv('DISABLE_SECURITY')}")
+    print(f"🔓 Auth Disabled: {os.getenv('OPENHANDS_DISABLE_AUTH')}")
     print("📡 API Endpoints:")
+    print("   GET  /health")
     print("   GET  /api/options/config")
     print("   POST /api/conversations") 
-    print("   GET  /health")
     print("🌍 Ready for frontend integration!")
+    
+    # Debug environment
+    print("\n🔍 Debug Info:")
+    print(f"   LLM_MODEL: {os.getenv('LLM_MODEL', 'Not set')}")
+    print(f"   LLM_BASE_URL: {os.getenv('LLM_BASE_URL', 'Not set')}")
+    print(f"   WORKSPACE_BASE: {os.getenv('WORKSPACE_BASE', 'Not set')}")
     
     uvicorn.run(
         app,
