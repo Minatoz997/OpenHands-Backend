@@ -12,11 +12,17 @@ class ServerConfig(ServerConfigInterface):
     github_client_id = os.environ.get('GITHUB_APP_CLIENT_ID', '')
     enable_billing = os.environ.get('ENABLE_BILLING', 'false') == 'true'
     hide_llm_settings = os.environ.get('HIDE_LLM_SETTINGS', 'false') == 'true'
-    settings_store_class: str = (
+    settings_store_class: str = os.environ.get(
+        'SETTINGS_STORE_TYPE',
         'openhands.storage.settings.file_settings_store.FileSettingsStore'
+    ) if os.environ.get('SETTINGS_STORE_TYPE') != 'memory' else (
+        'openhands.storage.settings.memory_settings_store.MemorySettingsStore'
     )
-    secret_store_class: str = (
+    secret_store_class: str = os.environ.get(
+        'SECRETS_STORE_TYPE', 
         'openhands.storage.secrets.file_secrets_store.FileSecretsStore'
+    ) if os.environ.get('SECRETS_STORE_TYPE') != 'memory' else (
+        'openhands.storage.secrets.memory_secrets_store.MemorySecretsStore'
     )
     conversation_store_class: str = (
         'openhands.storage.conversation.file_conversation_store.FileConversationStore'

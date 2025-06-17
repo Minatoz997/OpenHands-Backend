@@ -46,6 +46,15 @@ def setup_hf_environment():
     os.environ.setdefault("ENABLE_AUTO_LINT", "false")
     os.environ.setdefault("ENABLE_SECURITY_ANALYSIS", "false")
     
+    # Use memory-based storage for read-only environments
+    os.environ.setdefault("SETTINGS_STORE_TYPE", "memory")
+    os.environ.setdefault("SECRETS_STORE_TYPE", "memory")
+    
+    # Pre-configure default LLM settings for easy access
+    os.environ.setdefault("DEFAULT_LLM_MODEL", "openrouter/anthropic/claude-3-haiku-20240307")
+    os.environ.setdefault("DEFAULT_LLM_BASE_URL", "https://openrouter.ai/api/v1")
+    os.environ.setdefault("SKIP_SETTINGS_MODAL", "true")  # Skip setup wizard if API key available
+    
     # Create workspace directory
     workspace_dir = "/tmp/workspace"
     os.makedirs(workspace_dir, mode=0o755, exist_ok=True)
