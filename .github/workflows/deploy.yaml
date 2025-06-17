@@ -1,4 +1,4 @@
-name: Mirror GitHub Repo to HF Space
+name: Deploy to Hugging Face Space
 
 on:
   push:
@@ -11,21 +11,99 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout GitHub Repository
-        uses: actions/checkout@v3
-
-      - name: Install Git LFS
-        run: |
-          sudo apt-get update
-          sudo apt-get install git-lfs
-          git lfs install
-
-      - name: Sync only /openhands folder to Hugging Face
-        run: |
-          rsync -av --delete ./openhands/ ./repo/
-
-      - name: Push to Hugging Face
-        uses: huggingface/huggingface_hub_action@v0.1
+        uses: actions/checkout@v4
         with:
-          repo_id: Minatoz997/Backend66
-          repo_type: space
-          token: ${{ secrets.HF_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install huggingface_hub
+        run: |
+          pip install huggingface_hub
+
+      - name: Prepare files for Hugging Face Space
+        run: |
+          # Create temporary directory for HF Space files
+          mkdir -p ./hf_space
+          
+          # Copy essential files for HF Space
+          cp -r ./openhands ./hf_space/
+          cp ./app_hf.py ./hf_space/
+          cp ./requirements.txt ./hf_space/
+          cp ./Dockerfile_HF ./hf_space/Dockerfile
+          cp ./README_HF.md ./hf_space/README.md
+          
+          # Copy Space configuration
+          if [ -f "./space_config.yml" ]; then
+            cp ./space_config.yml ./hf_space/README.md.header
+          fi
+          
+          # Copy environment template if exists
+          if [ -f "./.env.hf" ]; then
+            cp ./.env.hf ./hf_space/.env
+          fi
+          
+          # Create app.py as entry point (HF Spaces looks for this)
+          cp ./app_hf.py ./hf_space/app.py
+          
+          # Create proper README.md with Space metadata
+          cat > ./hf_space/README.md << 'EOF'
+          ---
+          title: OpenHands Backend API
+          emoji: 🤖
+          colorFrom: blue
+          colorTo: purple
+          sdk: docker
+          pinned: false
+          license: mit
+          app_port: 7860
+          ---
+          
+          EOF
+          cat ./README_HF.md >> ./hf_space/README.md
+          
+          echo "Files prepared for Hugging Face Space:"
+          ls -la ./hf_space/
+
+      - name: Push to Hugging Face Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          cd ./hf_space
+          
+          # Method 1: Using huggingface_hub (recommended)
+          python << 'EOF'
+          import os
+          from huggingface_hub import HfApi, Repository
+          
+          # Initialize HF API
+          api = HfApi()
+          token = os.environ.get('HF_TOKEN')
+          repo_id = "Minatoz997/Backend66"
+          
+          try:
+              # Upload all files to the space
+              api.upload_folder(
+                  folder_path=".",
+                  repo_id=repo_id,
+                  repo_type="space",
+                  token=token,
+                  commit_message=f"Auto-update from GitHub: {os.environ.get('GITHUB_SHA', 'unknown')}"
+              )
+              print("✅ Successfully uploaded to Hugging Face Space!")
+          except Exception as e:
+              print(f"❌ Error uploading to HF Space: {e}")
+              # Fallback to git method
+              import subprocess
+              subprocess.run(["git", "config", "--global", "user.email", "action@github.com"])
+              subprocess.run(["git", "config", "--global", "user.name", "GitHub Action"])
+              subprocess.run(["git", "init"])
+              subprocess.run(["git", "add", "."])
+              subprocess.run(["git", "commit", "-m", f"Auto-update from GitHub: {os.environ.get('GITHUB_SHA', 'unknown')}"])
+              subprocess.run(["git", "remote", "add", "origin", f"https://user:{token}@huggingface.co/spaces/{repo_id}"])
+              subprocess.run(["git", "push", "--force", "origin", "main"])
+              print("✅ Fallback git push completed!")
+          EOF
