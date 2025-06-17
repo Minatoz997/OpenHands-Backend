@@ -76,7 +76,6 @@ DEBUG=false
 - JWT secret sekarang di-generate otomatis di memory (tidak perlu file)
 - Tidak perlu set `JWT_SECRET` di HF Space environment variables
 - Aplikasi akan generate sendiri saat startup
-
 ### Error: Authentication failed
 - Pastikan `HF_TOKEN` sudah diset dengan benar di GitHub Secrets
 - Pastikan token memiliki permission `write`
@@ -92,7 +91,6 @@ DEBUG=false
 ### Error: LLM API Key missing
 - Set `LLM_API_KEY` di HF Space environment variables
 - Pastikan API key valid dan memiliki credit
-
 ## Monitoring
 
 Untuk memonitor status deploy:
