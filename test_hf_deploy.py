@@ -109,12 +109,50 @@ def check_hf_token():
     print("✅ HF_TOKEN found!")
     return True
 
+def test_app_startup():
+    """Test if app_hf.py can be imported without errors"""
+    print("\n🧪 Testing app startup configuration...")
+    
+    try:
+        # Test environment setup function
+        import sys
+        sys.path.insert(0, '.')
+        
+        # Import the setup function
+        from app_hf import setup_hf_environment
+        
+        # Test the setup
+        file_store_path, cache_dir = setup_hf_environment()
+        
+        print(f"✅ Environment setup successful")
+        print(f"   File store: {file_store_path}")
+        print(f"   Cache dir: {cache_dir}")
+        print(f"   JWT Secret: {'✅ Set' if os.getenv('JWT_SECRET') else '❌ Missing'}")
+        
+        # Check if directories were created
+        if os.path.exists(file_store_path) and os.path.exists(cache_dir):
+            print("✅ Directories created successfully")
+        else:
+            print("❌ Directory creation failed")
+            return False
+            
+        return True
+        
+    except Exception as e:
+        print(f"❌ App startup test failed: {e}")
+        return False
+
 def main():
     print("🧪 Testing Hugging Face Space Deployment Setup\n")
     
     # Test file preparation
     if not test_file_preparation():
         print("\n❌ File preparation test failed!")
+        return
+    
+    # Test app startup configuration
+    if not test_app_startup():
+        print("\n❌ App startup test failed!")
         return
     
     # Simulate workflow
@@ -128,8 +166,10 @@ def main():
     print("\n🎉 All tests passed!")
     print("\n📝 Next steps:")
     print("1. Set HF_TOKEN in GitHub repository secrets")
-    print("2. Push changes to main branch to trigger auto-deploy")
-    print("3. Or run workflow manually from GitHub Actions tab")
+    print("2. Set LLM_API_KEY in HF Space environment variables")
+    print("3. Push changes to main branch to trigger auto-deploy")
+    print("4. Or run workflow manually from GitHub Actions tab")
+    print("\n💡 JWT Secret will be auto-generated, no need to set manually!")
 
 if __name__ == "__main__":
     main()

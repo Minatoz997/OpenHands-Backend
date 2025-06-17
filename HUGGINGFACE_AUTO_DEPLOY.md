@@ -56,12 +56,26 @@ LLM_API_KEY=your_openrouter_api_key
 LLM_MODEL=openrouter/anthropic/claude-3-haiku-20240307
 LLM_BASE_URL=https://openrouter.ai/api/v1
 
-# Optional
+# Optional (JWT_SECRET akan di-generate otomatis jika tidak diset)
+JWT_SECRET=your_jwt_secret_key_32_characters
 SESSION_API_KEY=your_session_key
 DEBUG=false
 ```
 
+### Catatan Penting:
+- **JWT_SECRET**: Tidak wajib diset, akan di-generate otomatis oleh aplikasi
+- **LLM_API_KEY**: Wajib diset untuk fungsi AI
+- **DISABLE_SECURITY**: Sudah diset ke `true` untuk public API
+
 ## Troubleshooting
+
+### Error: Permission denied JWT secret
+**Masalah**: `PermissionError: [Errno 13] Permission denied: '/tmp/openhands/.jwt_secret'`
+
+**Solusi**: 
+- JWT secret sekarang di-generate otomatis di memory (tidak perlu file)
+- Tidak perlu set `JWT_SECRET` di HF Space environment variables
+- Aplikasi akan generate sendiri saat startup
 
 ### Error: Authentication failed
 - Pastikan `HF_TOKEN` sudah diset dengan benar di GitHub Secrets
@@ -74,6 +88,10 @@ DEBUG=false
 ### Error: File not found
 - Pastikan semua file yang diperlukan ada di repository
 - Cek log GitHub Actions untuk detail error
+
+### Error: LLM API Key missing
+- Set `LLM_API_KEY` di HF Space environment variables
+- Pastikan API key valid dan memiliki credit
 
 ## Monitoring
 
