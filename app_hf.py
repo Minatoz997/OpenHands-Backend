@@ -55,6 +55,16 @@ def setup_hf_environment():
     os.environ.setdefault("DEFAULT_LLM_BASE_URL", "https://openrouter.ai/api/v1")
     os.environ.setdefault("SKIP_SETTINGS_MODAL", "true")  # Skip setup wizard if API key available
     
+    # Enhanced user experience settings
+    os.environ.setdefault("DEFAULT_AGENT", "CodeActAgent")
+    os.environ.setdefault("DEFAULT_LANGUAGE", "en")
+    os.environ.setdefault("CONFIRMATION_MODE", "false")
+    os.environ.setdefault("ENABLE_AUTO_LINT", "false")
+    
+    # Performance optimizations for HF Spaces
+    os.environ.setdefault("MAX_ITERATIONS", "30")  # Reasonable limit for public usage
+    os.environ.setdefault("MAX_BUDGET_PER_TASK", "10.0")  # Cost control
+    
     # Create workspace directory
     workspace_dir = "/tmp/workspace"
     os.makedirs(workspace_dir, mode=0o755, exist_ok=True)

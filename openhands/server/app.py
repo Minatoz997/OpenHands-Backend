@@ -29,6 +29,7 @@ from openhands.server.routes.secrets import app as secrets_router
 from openhands.server.routes.security import app as security_api_router
 from openhands.server.routes.settings import app as settings_router
 from openhands.server.routes.trajectory import app as trajectory_router
+from openhands.server.routes.hf_spaces import app as hf_spaces_router
 from openhands.server.shared import conversation_manager
 
 mcp_app = mcp_server.http_app(path='/mcp')
@@ -72,4 +73,5 @@ app.include_router(settings_router)
 app.include_router(secrets_router)
 app.include_router(git_api_router)
 app.include_router(trajectory_router)
+app.include_router(hf_spaces_router)  # HF Spaces specific endpoints
 add_health_endpoints(app)
