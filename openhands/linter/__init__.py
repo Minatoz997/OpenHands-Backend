@@ -6,6 +6,22 @@ code](https://github.com/paul-gauthier/aider/blob/main/aider/linter.py)).
 - The detailed implementation of the linter can be found at: https://github.com/All-Hands-AI/openhands-aci.
 """
 
-from openhands_aci.linter import DefaultLinter, LintResult
+try:
+    from openhands_aci.linter import DefaultLinter, LintResult
+    LINTER_AVAILABLE = True
+except ImportError:
+    # Fallback implementation for when openhands_aci is not available
+    class DefaultLinter:
+        def __init__(self, *args, **kwargs):
+            pass
+        
+        def lint(self, *args, **kwargs):
+            return []
+    
+    class LintResult:
+        def __init__(self, *args, **kwargs):
+            pass
+    
+    LINTER_AVAILABLE = False
 
-__all__ = ['DefaultLinter', 'LintResult']
+__all__ = ['DefaultLinter', 'LintResult', 'LINTER_AVAILABLE']

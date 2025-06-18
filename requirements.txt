@@ -80,5 +80,5 @@ boto3
 # - libtmux (terminal multiplexer)
 # - zope-interface (specific version conflict)
 # - runloop-api-client (external service)
-# - openhands-aci (Azure specific)
+openhands-aci==0.3.0
 # - browsergym-core (heavy browser dependency)
