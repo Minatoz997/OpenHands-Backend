@@ -12,15 +12,38 @@ try:
 except ImportError:
     # Fallback implementation for when openhands_aci is not available
     class DefaultLinter:
+        """Fallback linter that does nothing when openhands_aci is not available."""
+        
         def __init__(self, *args, **kwargs):
             pass
         
         def lint(self, *args, **kwargs):
+            """Return empty list when linting is not available."""
             return []
     
     class LintResult:
-        def __init__(self, *args, **kwargs):
-            pass
+        """Fallback LintResult that mimics basic structure."""
+        
+        def __init__(self, file_path=None, line_number=None, severity=None, message=None, **kwargs):
+            self.file_path = file_path
+            self.line_number = line_number
+            self.severity = severity
+            self.message = message
+            # Store any additional kwargs as attributes
+            for key, value in kwargs.items():
+                setattr(self, key, value)
+        
+        def __repr__(self):
+            return f"LintResult(file_path={self.file_path}, line_number={self.line_number}, severity={self.severity}, message={self.message})"
+        
+        def dict(self):
+            """Mimic Pydantic's dict() method."""
+            return {
+                'file_path': self.file_path,
+                'line_number': self.line_number,
+                'severity': self.severity,
+                'message': self.message
+            }
     
     LINTER_AVAILABLE = False
 
