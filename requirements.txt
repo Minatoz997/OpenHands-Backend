@@ -18,6 +18,9 @@ openai
 termcolor
 toml
 types-toml
+
+# ===== OpenHands Core Dependencies =====
+openhands-aci==0.3.0
 numpy
 json-repair
 html2text
@@ -111,7 +114,7 @@ idna
 # minio - External service, not essential
 # stripe - Payment processing, not needed
 # runloop-api-client - External service
-# openhands-aci - Azure specific, not needed
+openhands-aci==0.3.0
 
 # NOTE: For HF Spaces deployment, we use E2B Runtime instead of Docker:
 # - E2B provides secure cloud-based code execution
