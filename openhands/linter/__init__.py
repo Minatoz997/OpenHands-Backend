@@ -19,8 +19,11 @@ except ImportError:
             return []
     
     class LintResult:
-        def __init__(self, *args, **kwargs):
-            pass
+        def __init__(self, message="", severity="info", line=None, column=None, *args, **kwargs):
+            self.message = message
+            self.severity = severity
+            self.line = line
+            self.column = column
     
     LINTER_AVAILABLE = False
 
