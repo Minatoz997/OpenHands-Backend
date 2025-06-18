@@ -64,7 +64,7 @@ bashlex>=0.18
 # Cloud storage (optional)
 boto3
 
-# Removed problematic dependencies for HF Spaces:
+# Remove problematic dependencies for HF Spaces:
 # - docker (not needed in containerized environment)
 # - pythonnet (Windows-specific)
 # - modal (external cloud service)
@@ -81,4 +81,3 @@ boto3
 # - zope-interface (specific version conflict)
 # - runloop-api-client (external service)
 # - openhands-aci (Azure specific)
-# - browsergym-core (heavy browser dependency)

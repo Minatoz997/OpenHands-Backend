@@ -56,13 +56,11 @@ def setup_hf_environment():
         Path(directory).mkdir(parents=True, exist_ok=True)
     
     logger.info("✅ Environment configured for Hugging Face Spaces")
-    return "/tmp/file_store", "/tmp/cache"
-
 
 if __name__ == "__main__":
     try:
         logger.info("🔧 Setting up Hugging Face environment...")
-        file_store_path, cache_dir = setup_hf_environment()
+        setup_hf_environment()
         
         logger.info("📦 Importing OpenHands app...")
         from openhands.server.app import app

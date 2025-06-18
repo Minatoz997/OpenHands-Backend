@@ -15,8 +15,8 @@ RUN apt-get update && apt-get install -y \
 RUN mkdir -p /tmp/openhands /tmp/cache /tmp/workspace /tmp/file_store && \
     chmod -R 777 /tmp/openhands /tmp/cache /tmp/workspace /tmp/file_store
 
-# Copy requirements and install Python dependencies
-COPY requirements.txt .
+# Copy optimized requirements and install Python dependencies
+COPY requirements_hf.txt requirements.txt
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 

@@ -1,0 +1,125 @@
+name: Deploy to Hugging Face Spaces
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        lfs: true
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install huggingface_hub
+    
+    - name: Deploy to Hugging Face Spaces
+      env:
+        HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        HF_USERNAME: ${{ secrets.HF_USERNAME }}
+        HF_SPACE_NAME: ${{ secrets.HF_SPACE_NAME }}
+      run: |
+        python -c "
+        import os
+        from huggingface_hub import HfApi, create_repo
+        
+        # Configuration
+        token = os.environ['HF_TOKEN']
+        username = os.environ['HF_USERNAME']
+        space_name = os.environ['HF_SPACE_NAME']
+        repo_id = f'{username}/{space_name}'
+        
+        print(f'🚀 Deploying to Hugging Face Space: {repo_id}')
+        
+        # Initialize HF API
+        api = HfApi(token=token)
+        
+        # Create or get existing space
+        try:
+            api.create_repo(
+                repo_id=repo_id,
+                repo_type='space',
+                space_sdk='docker',
+                exist_ok=True
+            )
+            print(f'✅ Space {repo_id} ready')
+        except Exception as e:
+            print(f'⚠️ Space might already exist: {e}')
+        
+        # Upload files
+        files_to_upload = [
+            'Dockerfile',
+            'requirements.txt', 
+            'app_hf.py',
+            'space_config.yml',
+            'README_HF.md'
+        ]
+        
+        # Upload main files
+        for file in files_to_upload:
+            if os.path.exists(file):
+                try:
+                    api.upload_file(
+                        path_or_fileobj=file,
+                        path_in_repo=file,
+                        repo_id=repo_id,
+                        repo_type='space',
+                        token=token
+                    )
+                    print(f'✅ Uploaded {file}')
+                except Exception as e:
+                    print(f'❌ Failed to upload {file}: {e}')
+        
+        # Upload openhands folder
+        try:
+            api.upload_folder(
+                folder_path='openhands',
+                path_in_repo='openhands',
+                repo_id=repo_id,
+                repo_type='space',
+                token=token,
+                ignore_patterns=['*.pyc', '__pycache__', '*.git*']
+            )
+            print('✅ Uploaded openhands folder')
+        except Exception as e:
+            print(f'❌ Failed to upload openhands folder: {e}')
+        
+        # Upload microagents folder if exists
+        if os.path.exists('microagents'):
+            try:
+                api.upload_folder(
+                    folder_path='microagents',
+                    path_in_repo='microagents',
+                    repo_id=repo_id,
+                    repo_type='space',
+                    token=token,
+                    ignore_patterns=['*.pyc', '__pycache__', '*.git*']
+                )
+                print('✅ Uploaded microagents folder')
+            except Exception as e:
+                print(f'❌ Failed to upload microagents folder: {e}')
+        
+        print(f'🎉 Deployment completed!')
+        print(f'🌐 Your space will be available at: https://huggingface.co/spaces/{repo_id}')
+        "
+    
+    - name: Wait for deployment
+      run: |
+        echo "⏳ Waiting for Hugging Face to build and deploy..."
+        echo "🌐 Check your space at: https://huggingface.co/spaces/${{ secrets.HF_USERNAME }}/${{ secrets.HF_SPACE_NAME }}"
+        echo "📱 Mobile-friendly: You can now easily restart your space from mobile!"
