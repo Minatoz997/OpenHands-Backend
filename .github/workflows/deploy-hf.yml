@@ -52,26 +52,32 @@ jobs:
         echo "🔍 Ready to deploy..."
         ls -la
         
-    - name: 🧹 Clean deploy to Minatoz997/Backend66 (Manual)
-      if: ${{ github.event_name == 'workflow_dispatch' && inputs.clean_deploy }}
-      env:
-        HF_TOKEN: ${{ inputs.hf_token || secrets.HF_TOKEN }}
-      run: |
-        python deploy_to_hf.py --space-name "Minatoz997/Backend66"
-        
-    - name: 🚀 Auto deploy to Minatoz997/Backend66 (Push to main)
-      if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && !inputs.clean_deploy) }}
+    - name: 🚀 Deploy to Minatoz997/Backend66
       env:
         HF_TOKEN: ${{ secrets.HF_TOKEN }}
       run: |
-        echo "🚀 AUTO DEPLOY: Clean deploy essential files only"
+        echo "🚀 DEPLOYING TO HF SPACES..."
         echo "🔄 Triggered by: ${{ github.event_name }}"
         echo "📝 Commit: ${{ github.sha }}"
         echo "⏰ Time: $(date)"
         echo ""
         
-        # Use the same clean deploy script as manual
-        python deploy_to_hf.py --space-name "Minatoz997/Backend66"
+        # Direct deployment using huggingface_hub
+        python -c "
+        from huggingface_hub import HfApi
+        api = HfApi()
+        
+        files = ['app.py', 'requirements.txt', 'Dockerfile', 'README.md']
+        
+        for f in files:
+            try:
+                api.upload_file(f, f, 'Minatoz997/Backend66', repo_type='space')
+                print(f'✅ {f} uploaded')
+            except Exception as e:
+                print(f'❌ {f} failed: {e}')
+        
+        print('🎉 Deploy complete!')
+        "
         
     - name: ✅ Deployment complete
       run: |
