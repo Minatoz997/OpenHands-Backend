@@ -62,22 +62,8 @@ jobs:
         echo "⏰ Time: $(date)"
         echo ""
         
-        # Direct deployment using huggingface_hub
-        python -c "
-        from huggingface_hub import HfApi
-        api = HfApi()
-        
-        files = ['app.py', 'requirements.txt', 'Dockerfile', 'README.md']
-        
-        for f in files:
-            try:
-                api.upload_file(f, f, 'Minatoz997/Backend66', repo_type='space')
-                print(f'✅ {f} uploaded')
-            except Exception as e:
-                print(f'❌ {f} failed: {e}')
-        
-        print('🎉 Deploy complete!')
-        "
+        # Use proper deployment script with restart functionality
+        python deploy_to_hf.py --space-name "Minatoz997/Backend66"
         
     - name: ✅ Deployment complete
       run: |

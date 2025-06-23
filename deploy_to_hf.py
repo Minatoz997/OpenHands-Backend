@@ -62,11 +62,11 @@ def deploy_to_hf_spaces(space_name, token=None):
             print(f"❌ Missing files: {missing_files}")
             return False
         
-        # Upload each file
+        # Upload each file with overwrite to avoid duplicates
         for file in files_to_deploy:
             print(f"📤 Uploading {file}...")
             try:
-                upload_file(
+                api.upload_file(
                     path_or_fileobj=file,
                     path_in_repo=file,
                     repo_id=space_name,
