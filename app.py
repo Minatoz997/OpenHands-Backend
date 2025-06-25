@@ -1368,7 +1368,7 @@ async def chat_message_endpoint(request: Request):
         message = data.get("message", "")
         model = data.get("model", os.getenv("LLM_MODEL", "google/gemini-2.0-flash-001"))
         api_key = data.get("api_key") or os.getenv("LLM_API_KEY") or os.getenv("OPENROUTER_API_KEY")
-        max_tokens = data.get("max_tokens", 800)
+        max_tokens = data.get("max_tokens", 2000)  # Increased from 800 to 2000 for longer novel content generation
         temperature = data.get("temperature", 0.7)
         
         if not api_key:
@@ -1389,7 +1389,7 @@ async def chat_message_endpoint(request: Request):
         # Prepare messages for OpenRouter
         system_message = {
             "role": "system",
-            "content": "You are a creative novel writing assistant. You help users write engaging, detailed, and imaginative stories. When continuing a story, maintain the style, tone, and narrative voice of the existing text. Provide substantial content with vivid descriptions, character development, and plot advancement. Write in a natural, human-like style with varied sentence structures and engaging dialogue."
+            "content": "You are a creative novel writing assistant specialized in story continuation. Your primary task is to ADD NEW CONTENT that seamlessly continues the existing narrative. CRITICAL RULES: 1) NEVER rewrite or repeat existing content, 2) ALWAYS continue from the exact ending point, 3) Maintain consistent character names, tone, and style, 4) Generate substantial content (aim for 1000+ words when requested), 5) Focus on advancing the plot with new dialogue, actions, and descriptions. Write in a natural, human-like style with varied sentence structures."
         }
         
         user_message = {
