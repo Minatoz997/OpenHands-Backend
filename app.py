@@ -15,6 +15,7 @@ from typing import Dict, List, Any, Optional
 import json
 import re
 import random
+import requests
 
 # FastAPI imports
 from fastapi import FastAPI, Request, HTTPException
@@ -1349,6 +1350,129 @@ async def check_ai_detection_endpoint(request: Request):
 
 # Chat endpoints (for compatibility)
 async def chat_message_endpoint(request: Request):
+    """Chat message endpoint using OpenRouter API"""
+    try:
+        if request.method == "GET":
+            return {
+                "status": "success",
+                "message": "Chat endpoint active",
+                "available_features": [
+                    "writing_style_analysis",
+                    "human_content_generation",
+                    "text_humanization",
+                    "ai_detection_checking"
+                ]
+            }
+
+        data = await request.json()
+        message = data.get("message", "")
+        model = data.get("model", os.getenv("LLM_MODEL", "google/gemini-2.0-flash-001"))
+        api_key = data.get("api_key") or os.getenv("LLM_API_KEY") or os.getenv("OPENROUTER_API_KEY")
+        max_tokens = data.get("max_tokens", 800)
+        temperature = data.get("temperature", 0.7)
+        
+        if not api_key:
+            logger.warning("No OpenRouter API key provided")
+            return {
+                "status": "error",
+                "message": "OpenRouter API key required. Set LLM_API_KEY or OPENROUTER_API_KEY environment variable or provide in request."
+            }
+        
+        # Prepare OpenRouter API request
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://huggingface.co/spaces/Minatoz997/Backend66",
+            "X-Title": "OpenHands Backend Chat"
+        }
+        
+        # Prepare messages for OpenRouter
+        system_message = {
+            "role": "system",
+            "content": "You are a creative novel writing assistant. You help users write engaging, detailed, and imaginative stories. When continuing a story, maintain the style, tone, and narrative voice of the existing text. Provide substantial content with vivid descriptions, character development, and plot advancement. Write in a natural, human-like style with varied sentence structures and engaging dialogue."
+        }
+        
+        user_message = {
+            "role": "user",
+            "content": message
+        }
+        
+        payload = {
+            "model": model,
+            "messages": [system_message, user_message],
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "stream": False
+        }
+        
+        # Make request to OpenRouter
+        try:
+            response = requests.post(
+                "https://openrouter.ai/api/v1/chat/completions",
+                headers=headers,
+                json=payload,
+                timeout=60
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                assistant_message_content = data["choices"][0]["message"]["content"]
+                
+                return {
+                    "status": "success",
+                    "response": assistant_message_content,
+                    "model": model,
+                    "timestamp": datetime.now().isoformat(),
+                    "usage": data.get("usage", {}),
+                }
+            
+            elif response.status_code == 401:
+                logger.error("Invalid OpenRouter API key")
+                return {
+                    "status": "error",
+                    "message": "Invalid OpenRouter API key"
+                }
+            
+            elif response.status_code == 429:
+                logger.error("OpenRouter rate limit exceeded")
+                return {
+                    "status": "error",
+                    "message": "Rate limit exceeded. Please try again later."
+                }
+            
+            else:
+                error_data = response.text
+                try:
+                    error_json = response.json()
+                    error_message = error_json.get("error", {}).get("message", error_data)
+                except:
+                    error_message = error_data
+                
+                logger.error(f"OpenRouter API error: {error_message}")
+                return {
+                    "status": "error",
+                    "message": f"OpenRouter API error: {error_message}"
+                }
+                
+        except requests.exceptions.Timeout:
+            logger.error("OpenRouter API request timed out")
+            return {
+                "status": "error",
+                "message": "OpenRouter API request timed out"
+            }
+        except Exception as e:
+            logger.error(f"OpenRouter request error: {e}")
+            return {
+                "status": "error",
+                "message": f"OpenRouter request failed: {str(e)}"
+            }
+
+    except Exception as e:
+        logger.error(f"Chat error: {e}")
+        return {
+            "status": "error",
+            "message": f"Chat failed: {str(e)}"
+        }
     """Chat message endpoint"""
     try:
         if request.method == "GET":
