@@ -1,0 +1,16 @@
+Tolong bantu edit repository saya di GitHub:
+
+
+
+Perubahan yang diinginkan:
+1. Pada file fizzo_utils.py, tambahkan fungsi scraping daftar novel setelah login ke fizzo.org, return daftar judul & id novel ke user.
+2. Tambah endpoint baru `/api/fizzo-list-novel` di backend (FastAPI/Flask) yang mengembalikan daftar novel user (menerima email/password).
+3. Update endpoint `/api/fizzo-auto-update` agar menerima parameter `novel_id`. Setelah login dan dapat daftar novel, pilih novel sesuai `novel_id` sebelum upload chapter.
+4. Pastikan semua kode tetap bisa dijalankan di HuggingFace Spaces (jika perlu, tambahkan logic install Playwright Chromium di awal).
+5. Tambahkan contoh penggunaan endpoint baru di README/FIZZO_AUTOMATION_GUIDE.md.
+6. Commit message: "feat: support pilih novel & scraping daftar novel user di Fizzo"
+7. Buatkan Pull Request dengan judul dan deskripsi yang jelas.
+
+Format edit: langsung edit file, tambahkan komentar untuk perubahan penting, dan update test/manual test jika perlu.
+
+Terima kasih.
