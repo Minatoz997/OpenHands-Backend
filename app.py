@@ -1368,7 +1368,7 @@ async def chat_message_endpoint(request: Request):
         message = data.get("message", "")
         model = data.get("model", os.getenv("LLM_MODEL", "google/gemini-2.0-flash-001"))
         api_key = data.get("api_key") or os.getenv("LLM_API_KEY") or os.getenv("OPENROUTER_API_KEY")
-        max_tokens = data.get("max_tokens", 2000)  # Increased from 800 to 2000 for longer novel content generation
+        max_tokens = data.get("max_tokens", 800)  # Optimized for 500-600 words per cycle (4 cycles to reach 2000 words)
         temperature = data.get("temperature", 0.7)
         
         if not api_key:
