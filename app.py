@@ -1366,7 +1366,25 @@ async def chat_message_endpoint(request: Request):
 
         data = await request.json()
         message = data.get("message", "")
-        model = data.get("model", os.getenv("LLM_MODEL", "google/gemini-2.0-flash-001"))
+        requested_model = data.get("model", os.getenv("LLM_MODEL", "google/gemini-2.0-flash-001"))
+        
+        # Map common model names to OpenRouter format
+        model_mapping = {
+            "gpt-3.5-turbo": "openai/gpt-3.5-turbo",
+            "gpt-4": "openai/gpt-4",
+            "gpt-4-turbo": "openai/gpt-4-turbo",
+            "claude-3-sonnet": "anthropic/claude-3-sonnet",
+            "claude-3-haiku": "anthropic/claude-3-haiku",
+            "gemini-pro": "google/gemini-pro"
+        }
+        
+        # Use mapped model or original if already in correct format
+        model = model_mapping.get(requested_model, requested_model)
+        
+        # If model doesn't start with provider/, use environment default
+        if "/" not in model:
+            model = os.getenv("LLM_MODEL", "google/gemini-2.0-flash-001")
+            
         api_key = data.get("api_key") or os.getenv("LLM_API_KEY") or os.getenv("OPENROUTER_API_KEY")
         max_tokens = data.get("max_tokens", 800)  # Optimized for 500-600 words per cycle (4 cycles to reach 2000 words)
         temperature = data.get("temperature", 0.7)
@@ -1406,7 +1424,7 @@ async def chat_message_endpoint(request: Request):
         }
         
         # Log request details for debugging
-        logger.info(f"🚀 Chat request: model={model}, max_tokens={max_tokens}, message_length={len(message)}")
+        logger.info(f"🚀 Chat request: requested_model={requested_model}, final_model={model}, max_tokens={max_tokens}, message_length={len(message)}")
         
         # Make request to OpenRouter
         try:
