@@ -1368,14 +1368,14 @@ async def chat_message_endpoint(request: Request):
         message = data.get("message", "")
         requested_model = data.get("model", os.getenv("LLM_MODEL", "google/gemini-2.0-flash-001"))
         
-        # Map common model names to OpenRouter format
+        # Map common model names to OpenRouter format (using verified working models)
         model_mapping = {
-            "gpt-3.5-turbo": "openai/gpt-3.5-turbo",
-            "gpt-4": "openai/gpt-4",
-            "gpt-4-turbo": "openai/gpt-4-turbo",
-            "claude-3-sonnet": "anthropic/claude-3-sonnet",
-            "claude-3-haiku": "anthropic/claude-3-haiku",
-            "gemini-pro": "google/gemini-pro"
+            "gpt-3.5-turbo": "openai/gpt-3.5-turbo-0125",
+            "gpt-4": "openai/gpt-4o-mini",
+            "gpt-4-turbo": "openai/gpt-4o",
+            "claude-3-sonnet": "anthropic/claude-3.5-sonnet",
+            "claude-3-haiku": "anthropic/claude-3-haiku-20240307",
+            "gemini-pro": "google/gemini-2.0-flash-001"
         }
         
         # Use mapped model or original if already in correct format
