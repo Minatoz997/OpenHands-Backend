@@ -1186,6 +1186,142 @@ async def health_check():
     """Health check endpoint"""
     return {"status": "ok", "service": "Human-Like Writing Assistant", "version": "1.0.0"}
 
+async def debug_openrouter_endpoint():
+    """Debug OpenRouter API connection and available models."""
+    try:
+        api_key = os.getenv("LLM_API_KEY") or os.getenv("OPENROUTER_API_KEY")
+        
+        result = {
+            "timestamp": datetime.now().isoformat(),
+            "api_key_configured": bool(api_key),
+            "api_key_preview": f"{api_key[:10]}..." if api_key else "Not found",
+            "environment_vars": {
+                "LLM_API_KEY": "✅ Set" if os.getenv("LLM_API_KEY") else "❌ Not set",
+                "OPENROUTER_API_KEY": "✅ Set" if os.getenv("OPENROUTER_API_KEY") else "❌ Not set",
+                "LLM_MODEL": os.getenv("LLM_MODEL", "Not set"),
+                "LLM_BASE_URL": os.getenv("LLM_BASE_URL", "Not set")
+            }
+        }
+        
+        if not api_key:
+            result["error"] = "❌ NO API KEY FOUND IN ENVIRONMENT!"
+            result["status"] = "FAILED"
+            result["solution"] = "Set LLM_API_KEY in HF Spaces Settings"
+            return result
+        
+        # Test API key validity
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        
+        logger.info("🔍 Testing OpenRouter API key...")
+        
+        # Test 1: Get available models
+        models_response = requests.get(
+            "https://openrouter.ai/api/v1/models",
+            headers=headers,
+            timeout=10
+        )
+        
+        if models_response.status_code == 200:
+            models_data = models_response.json()
+            available_models = [model["id"] for model in models_data.get("data", [])]
+            
+            # Check specific models we need
+            needed_models = [
+                "openai/gpt-3.5-turbo-0125",
+                "openai/gpt-4o-mini", 
+                "google/gemini-2.0-flash-001",
+                "anthropic/claude-3-haiku-20240307"
+            ]
+            
+            model_status = {}
+            for model in needed_models:
+                model_status[model] = "✅ Available" if model in available_models else "❌ Not available"
+            
+            result.update({
+                "status": "✅ API KEY VALID",
+                "total_models_available": len(available_models),
+                "needed_models_status": model_status,
+                "sample_models": available_models[:10]
+            })
+            
+            # Test 2: Try a simple chat request
+            logger.info("🧪 Testing chat request...")
+            
+            # Find a working model
+            working_model = None
+            for model in ["google/gemini-2.0-flash-001", "openai/gpt-4o-mini", "anthropic/claude-3-haiku-20240307"]:
+                if model in available_models:
+                    working_model = model
+                    break
+            
+            if working_model:
+                chat_payload = {
+                    "model": working_model,
+                    "messages": [
+                        {"role": "user", "content": "Hello! Just testing API connection."}
+                    ],
+                    "max_tokens": 50
+                }
+                
+                chat_response = requests.post(
+                    "https://openrouter.ai/api/v1/chat/completions",
+                    headers=headers,
+                    json=chat_payload,
+                    timeout=30
+                )
+                
+                if chat_response.status_code == 200:
+                    chat_data = chat_response.json()
+                    test_message = chat_data["choices"][0]["message"]["content"]
+                    
+                    result["chat_test"] = {
+                        "status": "✅ CHAT WORKING!",
+                        "model_used": working_model,
+                        "response_preview": test_message[:100] + "..." if len(test_message) > 100 else test_message
+                    }
+                else:
+                    result["chat_test"] = {
+                        "status": "❌ CHAT FAILED",
+                        "error": f"Status {chat_response.status_code}: {chat_response.text}"
+                    }
+            else:
+                result["chat_test"] = {
+                    "status": "❌ NO WORKING MODELS",
+                    "error": "None of the required models are available"
+                }
+                
+        elif models_response.status_code == 401:
+            result.update({
+                "status": "❌ INVALID API KEY",
+                "error": "API key is invalid or expired",
+                "solution": "Get new API key from https://openrouter.ai/",
+                "response": models_response.text
+            })
+        else:
+            result.update({
+                "status": f"❌ API ERROR {models_response.status_code}",
+                "error": models_response.text
+            })
+            
+        return result
+        
+    except requests.exceptions.Timeout:
+        return {
+            "status": "❌ TIMEOUT",
+            "error": "OpenRouter API request timed out",
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Debug OpenRouter error: {e}")
+        return {
+            "status": "❌ ERROR",
+            "error": str(e),
+            "timestamp": datetime.now().isoformat()
+        }
+
 async def login_user(request: Request):
     """User login endpoint"""
     try:
@@ -1368,14 +1504,14 @@ async def chat_message_endpoint(request: Request):
         message = data.get("message", "")
         requested_model = data.get("model", os.getenv("LLM_MODEL", "google/gemini-2.0-flash-001"))
         
-        # Map common model names to OpenRouter format
+        # Map common model names to OpenRouter format (using verified working models)
         model_mapping = {
-            "gpt-3.5-turbo": "openai/gpt-3.5-turbo",
-            "gpt-4": "openai/gpt-4",
-            "gpt-4-turbo": "openai/gpt-4-turbo",
-            "claude-3-sonnet": "anthropic/claude-3-sonnet",
-            "claude-3-haiku": "anthropic/claude-3-haiku",
-            "gemini-pro": "google/gemini-pro"
+            "gpt-3.5-turbo": "openai/gpt-3.5-turbo-0125",
+            "gpt-4": "openai/gpt-4o-mini",
+            "gpt-4-turbo": "openai/gpt-4o",
+            "claude-3-sonnet": "anthropic/claude-3.5-sonnet",
+            "claude-3-haiku": "anthropic/claude-3-haiku-20240307",
+            "gemini-pro": "google/gemini-2.0-flash-001"
         }
         
         # Use mapped model or original if already in correct format
@@ -1614,6 +1750,10 @@ def create_fallback_app():
     @app.get("/health")
     async def health():
         return await health_check()
+    
+    @app.get("/debug/openrouter")
+    async def debug_openrouter():
+        return await debug_openrouter_endpoint()
     
     # Authentication
     @app.post("/api/login")
